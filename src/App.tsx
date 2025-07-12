@@ -1,18 +1,41 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import AdminRoute from './components/AdminRoute';
+import AdminLayout from './components/AdminLayout';
+import OperatorRoute from './components/OperatorRoute';
+import OperatorLayout from './components/OperatorLayout';
 
-// Import pages
-import AdminMachineCategories from './pages/admin/MachineCategories';
-import AdminProductTypes from './pages/admin/ProductTypes';
+// Import admin pages
+import AdminHome from './pages/admin/AdminHome';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import MachineCategoriesPage from './pages/admin/MachineCategoriesPage';
+import ProductTypesPage from './pages/admin/ProductTypesPage';
 import AdminGlobalProducts from './pages/admin/GlobalProducts';
+import UserRoles from './pages/admin/UserRoles';
+import VendingMachineBuilder from './pages/admin/VendingMachineBuilder';
+import VendingMachines from './pages/admin/VendingMachines';
+
+// Import operator pages
+import OperatorDashboard from './pages/operator/OperatorDashboard';
+import CompanyProfile from './pages/operator/CompanyProfile';
+import GlobalCatalog from './pages/operator/GlobalCatalog';
+import CompanyCatalog from './pages/operator/CompanyCatalog';
+import Customers from './pages/operator/Customers';
+import Machines from './pages/operator/Machines';
+import OperatorVendingMachineBuilder from './pages/operator/VendingMachineBuilder';
+import OperatorVendingMachines from './pages/operator/VendingMachines';
+
+// Import other pages
 import CatalogImport from './pages/catalog/ImportProducts';
 import CompanyProducts from './pages/company/Products';
 import SupabaseTest from './pages/SupabaseTest';
+import VendingMachineTest from './pages/VendingMachineTest';
 import Login from './pages/Login';
+import UserDebug from './components/UserDebug';
 
 function AppContent() {
-  const { user, loading, signOut } = useAuth();
+  const { user, loading, signOut, isAdmin, isOperator } = useAuth();
   const [activeTab, setActiveTab] = useState('home');
 
   if (loading) {
@@ -32,6 +55,8 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+
+      
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-4">
@@ -52,12 +77,22 @@ function AppContent() {
                 >
                   Home
                 </Link>
-                <Link 
-                  to="/admin/machine-categories" 
-                  className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-                >
-                  Admin
-                </Link>
+                {isAdmin && (
+                  <Link 
+                    to="/admin" 
+                    className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Admin
+                  </Link>
+                )}
+                {isOperator && (
+                  <Link 
+                    to="/operator" 
+                    className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Operator
+                  </Link>
+                )}
                 <Link 
                   to="/catalog/import-products" 
                   className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
@@ -100,9 +135,38 @@ function AppContent() {
           <Route path="/" element={<HomePage />} />
           
           {/* Admin Routes */}
-          <Route path="/admin/machine-categories" element={<AdminMachineCategories />} />
-          <Route path="/admin/product-types" element={<AdminProductTypes />} />
-          <Route path="/admin/global-products" element={<AdminGlobalProducts />} />
+          <Route path="/admin" element={
+            <AdminRoute>
+              <AdminLayout />
+            </AdminRoute>
+          }>
+            <Route index element={<AdminHome />} />
+            <Route path="dashboard" element={<AdminHome />} />
+            <Route path="machine-categories" element={<MachineCategoriesPage />} />
+            <Route path="product-types" element={<ProductTypesPage />} />
+            <Route path="user-roles" element={<UserRoles />} />
+            <Route path="global-products" element={<AdminGlobalProducts />} />
+            <Route path="vending-machine-builder" element={<VendingMachineBuilder />} />
+            <Route path="vending-machine-builder/:id" element={<VendingMachineBuilder />} />
+            <Route path="vending-machines" element={<VendingMachines />} />
+          </Route>
+          
+          {/* Operator Routes */}
+          <Route path="/operator" element={
+            <OperatorRoute>
+              <OperatorLayout />
+            </OperatorRoute>
+          }>
+            <Route index element={<OperatorDashboard />} />
+            <Route path="dashboard" element={<OperatorDashboard />} />
+            <Route path="profile" element={<CompanyProfile />} />
+            <Route path="global-catalog" element={<GlobalCatalog />} />
+            <Route path="company-catalog" element={<CompanyCatalog />} />
+            <Route path="customers" element={<Customers />} />
+            <Route path="machines" element={<Machines />} />
+            <Route path="vending-machine-builder" element={<OperatorVendingMachineBuilder />} />
+            <Route path="vending-machines" element={<OperatorVendingMachines />} />
+          </Route>
           
           {/* Catalog Routes */}
           <Route path="/catalog/import-products" element={<CatalogImport />} />
@@ -110,8 +174,9 @@ function AppContent() {
           {/* Company Routes */}
           <Route path="/company/products" element={<CompanyProducts />} />
           
-          {/* Test Route */}
+          {/* Test Routes */}
           <Route path="/test" element={<SupabaseTest />} />
+          <Route path="/test-vending-machine" element={<VendingMachineTest />} />
         </Routes>
       </main>
     </div>
@@ -130,6 +195,7 @@ function App() {
 
 // Home Page Component
 function HomePage() {
+  const { isAdmin, isOperator } = useAuth();
   return (
     <div className="space-y-8">
       <div className="text-center">
@@ -144,23 +210,27 @@ function HomePage() {
 
       {/* Quick Navigation Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Link 
-          to="/admin/machine-categories"
-          className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
-        >
-          <div className="text-2xl mb-2">🏷️</div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Machine Categories</h3>
-          <p className="text-sm text-gray-600">Manage snack, drink, and other machine categories</p>
-        </Link>
+        {isAdmin && (
+          <Link 
+            to="/admin"
+            className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+          >
+            <div className="text-2xl mb-2">⚙️</div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Admin Dashboard</h3>
+            <p className="text-sm text-gray-600">Manage system configuration and user roles</p>
+          </Link>
+        )}
 
-        <Link 
-          to="/admin/product-types"
-          className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
-        >
-          <div className="text-2xl mb-2">📦</div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Product Types</h3>
-          <p className="text-sm text-gray-600">Define product types for each machine category</p>
-        </Link>
+        {isOperator && (
+          <Link 
+            to="/operator"
+            className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+          >
+            <div className="text-2xl mb-2">🏢</div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Operator Dashboard</h3>
+            <p className="text-sm text-gray-600">Manage company products, customers, and machines</p>
+          </Link>
+        )}
 
         <Link 
           to="/admin/global-products"
